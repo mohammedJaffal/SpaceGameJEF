@@ -1,0 +1,366 @@
+\documentclass[12pt,a4paper]{report}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{tocloft}
+\usepackage{setspace}
+
+% Marges
+\geometry{top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm}
+
+% Couleurs
+\definecolor{bleuFonce}{RGB}{0, 51, 102}
+\definecolor{bleuClair}{RGB}{0, 102, 204}
+\definecolor{grisCode}{RGB}{245, 245, 245}
+\definecolor{vertCode}{RGB}{0, 128, 0}
+\definecolor{rougeCode}{RGB}{180, 0, 0}
+
+% Style des titres
+\titleformat{\chapter}[block]
+  {\normalfont\Large\bfseries\color{bleuFonce}}
+  {\thechapter.}{1em}{}
+\titleformat{\section}
+  {\normalfont\large\bfseries\color{bleuClair}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}
+  {\thesubsection}{1em}{}
+
+% Style du code
+\lstset{
+  backgroundcolor=\color{grisCode},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{bleuClair}\bfseries,
+  commentstyle=\color{vertCode},
+  stringstyle=\color{rougeCode},
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  language=Java,
+  showstringspaces=false,
+  tabsize=4
+}
+
+% En-tête et pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Jeu de l'Espace -- Space Defender}
+\fancyhead[R]{\small Projet JavaFX}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Espacement
+\onehalfspacing
+
+\begin{document}
+
+% ===================== PAGE DE GARDE =====================
+\begin{titlepage}
+  \centering
+
+  \vspace*{1cm}
+
+  {\Large \textbf{Université -- Département Informatique}}\\[0.3cm]
+  {\large Année universitaire 2024--2025}
+
+  \vspace{1.5cm}
+  \rule{\linewidth}{1.5pt}\\[0.4cm]
+  {\Huge \textbf{\color{bleuFonce} Rapport de Projet}}\\[0.3cm]
+  {\LARGE \textbf{Sujet 1 : Jeu de l'Espace}}\\[0.2cm]
+  {\Large \textit{Space Defender -- Jeu en JavaFX}}\\[0.2cm]
+  \rule{\linewidth}{1.5pt}
+
+  \vspace{2cm}
+
+  {\large \textbf{Réalisé par :}}\\[0.5cm]
+  \begin{tabular}{c}
+    \large Hamza Sadik \\[0.3cm]
+    \large Jaffal Mohammed \\[0.3cm]
+    \large Youssef Sabri \\
+  \end{tabular}
+
+  \vspace{2cm}
+
+  {\large \textbf{Encadrant :} Pr. [Nom de l'encadrant]}
+
+  \vspace{2cm}
+
+  {\large \today}
+
+\end{titlepage}
+
+% ===================== TABLE DES MATIÈRES =====================
+\tableofcontents
+\newpage
+
+% ===================== CHAPITRE 1 : INTRODUCTION =====================
+\chapter{Introduction}
+
+\section{Contexte général}
+Dans le cadre du module de développement d'applications graphiques, nous avons été chargés de concevoir et développer un jeu vidéo interactif intitulé \textbf{Space Defender}. Ce projet s'inscrit dans le sujet numéro 1 proposé : \textit{Développement d'un jeu de l'espace en JavaFX}.
+
+Ce jeu s'inspire des classiques du genre \textit{Space Invaders}, où le joueur doit défendre la Terre contre une invasion d'extraterrestres qui larguent des bombes destructrices.
+
+\section{Objectifs du projet}
+Les principaux objectifs de ce projet sont :
+\begin{itemize}[leftmargin=1.5cm]
+  \item Développer une application graphique interactive en \textbf{JavaFX}
+  \item Mettre en \oe{}uvre les concepts d'animation et de boucle de jeu en temps réel
+  \item Gérer les interactions clavier et les collisions entre objets
+  \item Concevoir une interface ergonomique et immersive
+  \item Implémenter un système de niveaux progressifs
+\end{itemize}
+
+\section{Organisation du rapport}
+Ce rapport est structuré en quatre chapitres :
+\begin{enumerate}[leftmargin=1.5cm]
+  \item \textbf{Introduction} : contexte et objectifs
+  \item \textbf{Analyse et conception} : règles du jeu, architecture et diagrammes
+  \item \textbf{Implémentation} : description des classes et extraits de code
+  \item \textbf{Conclusion} : bilan et perspectives
+\end{enumerate}
+
+% ===================== CHAPITRE 2 : CONCEPTION =====================
+\chapter{Analyse et Conception}
+
+\section{Présentation du jeu}
+\textbf{Space Defender} est un jeu de tir spatial à défilement vertical. Le joueur contrôle une fusée en bas de l'écran et doit détruire les OVNIs ennemis qui avancent vers lui tout en évitant leurs bombes.
+
+\subsection{Règles du jeu}
+\begin{itemize}[leftmargin=1.5cm]
+  \item Le joueur dispose de \textbf{3 vies} représentées par des c\oe{}urs
+  \item Il perd une vie chaque fois qu'une bombe ennemie le touche
+  \item Le jeu est \textbf{gagné} quand tous les OVNIs sont détruits
+  \item Le jeu est \textbf{perdu} quand toutes les vies sont épuisées
+  \item Chaque niveau augmente la vitesse et le nombre d'ennemis
+\end{itemize}
+
+\subsection{Contrôles du joueur}
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\textbf{Touche} & \textbf{Action} \\
+\hline
+$\leftarrow$ / Q & Déplacer la fusée à gauche \\
+$\rightarrow$ / D & Déplacer la fusée à droite \\
+ESPACE & Tirer un projectile \\
+ENTRÉE & Rejouer / Niveau suivant \\
+ÉCHAP & Retour au menu \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Architecture du projet}
+
+\subsection{Structure des fichiers}
+Le projet est organisé selon l'architecture Maven standard :
+
+\begin{verbatim}
+SpaceGame/
+├── pom.xml
+└── src/
+    └── main/
+        └── java/
+            └── com/spacegame/
+                ├── MainApp.java
+                ├── MenuScreen.java
+                ├── GameScreen.java
+                ├── Player.java
+                ├── Enemy.java
+                ├── Bullet.java
+                ├── Bomb.java
+                ├── Explosion.java
+                └── Star.java
+\end{verbatim}
+
+\subsection{Diagramme des classes}
+Le projet contient \textbf{9 classes} principales organisées ainsi :
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Classe} & \textbf{Rôle} \\
+\hline
+\texttt{MainApp} & Point d'entrée de l'application JavaFX \\
+\texttt{MenuScreen} & Écran d'accueil avec boutons Jouer/Quitter \\
+\texttt{GameScreen} & Boucle principale du jeu (logique + rendu) \\
+\texttt{Player} & La fusée contrôlée par le joueur \\
+\texttt{Enemy} & Les OVNIs ennemis \\
+\texttt{Bullet} & Les projectiles tirés par le joueur \\
+\texttt{Bomb} & Les bombes larguées par les ennemis \\
+\texttt{Explosion} & Animation d'explosion à l'impact \\
+\texttt{Star} & Les étoiles du fond animé \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Boucle de jeu}
+Le jeu utilise un \texttt{AnimationTimer} de JavaFX pour exécuter la boucle de jeu à environ 60 images par seconde. Chaque frame effectue :
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item \textbf{Mise à jour} (\texttt{update}) : déplacement des entités, détection des collisions, vérification des conditions de fin
+  \item \textbf{Rendu} (\texttt{render}) : dessin du fond, des entités, du HUD et des effets
+\end{enumerate}
+
+% ===================== CHAPITRE 3 : IMPLÉMENTATION =====================
+\chapter{Implémentation}
+
+\section{Technologies utilisées}
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Java 17} : langage de programmation principal
+  \item \textbf{JavaFX 21} : bibliothèque graphique pour l'interface et les animations
+  \item \textbf{Maven} : outil de gestion des dépendances et de build
+  \item \textbf{IntelliJ IDEA} : environnement de développement
+\end{itemize}
+
+\section{Classe principale -- MainApp}
+La classe \texttt{MainApp} est le point d'entrée de l'application. Elle initialise la fenêtre et charge l'écran de menu.
+
+\begin{lstlisting}[caption={MainApp.java -- Point d'entrée}]
+public class MainApp extends Application {
+    public static final int WIDTH = 900;
+    public static final int HEIGHT = 600;
+
+    @Override
+    public void start(Stage stage) {
+        MenuScreen menu = new MenuScreen(stage);
+        Scene scene = new Scene(menu.getRoot(), WIDTH, HEIGHT);
+        stage.setTitle("Space Defender");
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+\end{lstlisting}
+
+\section{Gestion du joueur -- Player}
+La classe \texttt{Player} représente la fusée du joueur. Elle gère le dessin, le mouvement et les vies.
+
+\begin{lstlisting}[caption={Player.java -- Mouvement et vies}]
+public void moveLeft(double speed) {
+    x = Math.max(0, x - speed);
+}
+
+public void moveRight(double speed) {
+    x = Math.min(MainApp.WIDTH - width, x + speed);
+}
+
+public void loseLife() { lives--; }
+public boolean isDead() { return lives <= 0; }
+\end{lstlisting}
+
+\section{Comportement des ennemis -- Enemy}
+Les OVNIs se déplacent horizontalement et rebondissent sur les bords. À chaque rebond, ils descendent de 20 pixels. Ils larguent des bombes périodiquement.
+
+\begin{lstlisting}[caption={Enemy.java -- Déplacement et bombes}]
+public void update(double delta) {
+    x += speedX * delta;
+    if (x <= 0 || x + width >= MainApp.WIDTH) {
+        speedX = -speedX;
+        y += 20;  // Descend a chaque rebond
+    }
+    bombTimer += delta;
+}
+
+public boolean shouldDropBomb() {
+    if (bombTimer >= bombCooldown) {
+        bombTimer = rand.nextDouble() * bombCooldown * 0.5;
+        return true;
+    }
+    return false;
+}
+\end{lstlisting}
+
+\section{Détection des collisions}
+La détection de collision utilise la méthode des \textbf{boîtes englobantes} (\textit{AABB -- Axis-Aligned Bounding Box}) :
+
+\begin{lstlisting}[caption={Méthode de détection de collision}]
+public boolean intersects(double ox, double oy,
+                           double ow, double oh) {
+    return x < ox + ow && x + width > ox
+        && y < oy + oh && y + height > oy;
+}
+\end{lstlisting}
+
+Deux types de collisions sont gérés :
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Projectile $\leftrightarrow$ Ennemi} : l'ennemi est détruit et une explosion apparaît
+  \item \textbf{Bombe $\leftrightarrow$ Joueur} : le joueur perd une vie et une explosion apparaît
+\end{itemize}
+
+\section{Système de niveaux}
+La difficulté augmente à chaque niveau :
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Niveau} & \textbf{Lignes d'ennemis} & \textbf{Vitesse (px/s)} & \textbf{Délai bombes (s)} \\
+\hline
+1 & 3 & 90 & 2.5 \\
+2 & 4 & 120 & 2.0 \\
+3 & 5 & 150 & 1.5 \\
+4+ & 6+ & 180+ & 1.0 \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Effets visuels}
+\subsection{Fond étoilé animé}
+80 étoiles de tailles et vitesses aléatoires défilent vers le bas pour simuler le déplacement dans l'espace.
+
+\subsection{Explosions}
+À chaque destruction, une animation d'explosion est créée avec un cercle orange/jaune qui grandit puis disparaît progressivement en 0.4 secondes.
+
+\subsection{Dessin des entités}
+Toutes les entités sont dessinées avec l'API \texttt{GraphicsContext} du \texttt{Canvas} JavaFX, sans utilisation d'images externes.
+
+% ===================== CHAPITRE 4 : CONCLUSION =====================
+\chapter{Conclusion}
+
+\section{Bilan du projet}
+Ce projet nous a permis de développer un jeu vidéo complet en Java avec JavaFX. Nous avons mis en \oe{}uvre les concepts suivants :
+
+\begin{itemize}[leftmargin=1.5cm]
+  \item La \textbf{boucle de jeu} avec \texttt{AnimationTimer} et gestion du temps (\texttt{delta})
+  \item Le \textbf{dessin 2D} avec \texttt{Canvas} et \texttt{GraphicsContext}
+  \item La \textbf{gestion des événements clavier} en temps réel
+  \item La \textbf{détection de collisions} par boîtes englobantes (AABB)
+  \item L'\textbf{architecture orientée objet} avec séparation des responsabilités
+  \item Un \textbf{système de niveaux} progressifs
+\end{itemize}
+
+\section{Difficultés rencontrées}
+Parmi les difficultés rencontrées lors du développement :
+\begin{itemize}[leftmargin=1.5cm]
+  \item La synchronisation de la boucle de jeu avec JavaFX
+  \item La gestion correcte des événements clavier entre les scènes
+  \item L'encodage des caractères spéciaux dans l'affichage canvas
+\end{itemize}
+
+\section{Perspectives d'amélioration}
+Des améliorations futures pourraient inclure :
+\begin{itemize}[leftmargin=1.5cm]
+  \item Ajout d'effets sonores (tirs, explosions, musique de fond)
+  \item Intégration d'images et de sprites pour les personnages
+  \item Un système de sauvegarde des meilleurs scores
+  \item Des power-ups (bouclier, tir multiple, etc.)
+  \item Un mode multijoueur local
+\end{itemize}
+
+\section{Conclusion générale}
+Ce projet nous a permis d'acquérir une expérience pratique solide dans le développement d'applications graphiques interactives avec JavaFX. La réalisation d'un jeu complet, de la conception à l'implémentation, nous a appris à gérer la complexité d'une application temps réel tout en appliquant les principes de la programmation orientée objet.
+
+\end{document}
