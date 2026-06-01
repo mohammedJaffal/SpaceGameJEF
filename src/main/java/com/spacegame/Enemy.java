@@ -1,6 +1,7 @@
 package com.spacegame;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -9,11 +10,18 @@ import java.util.Random;
 
 public class Enemy {
 
+    // Kenney Space Shooter Redux preview sheet, CC0.
+    // Used only for sprite visuals. If the image cannot load, Canvas vector fallback is used.
+    private static final String KENNEY_SHEET_URL =
+            "https://kenney.nl/media/pages/assets/space-shooter-redux/770f8d32f7-1677669432/preview.png";
+    private static Image kenneySheet;
+    private static boolean triedLoadingSheet = false;
+
     public enum Type {
-        SCOUT("Scout"),
-        SHOOTER("Shooter"),
-        TANK("Tank"),
-        BOSS("Mothership");
+        SCOUT("Kenney Scout"),
+        SHOOTER("Kenney Blaster"),
+        TANK("Kenney Tank"),
+        BOSS("Kenney Mothership");
 
         private final String displayName;
 
@@ -67,8 +75,8 @@ public class Enemy {
     private void configureStats() {
         switch (type) {
             case SCOUT -> {
-                width = 46;
-                height = 30;
+                width = 54;
+                height = 44;
                 maxHealth = 1 + level / 5;
                 reward = 10 * level;
                 bombChance = 0.50;
@@ -76,8 +84,8 @@ public class Enemy {
                 waveSpeed = 2.0 + rand.nextDouble() * 1.4;
             }
             case SHOOTER -> {
-                width = 54;
-                height = 36;
+                width = 58;
+                height = 46;
                 maxHealth = 2 + level / 4;
                 reward = 18 * level;
                 bombChance = 0.88;
@@ -86,8 +94,8 @@ public class Enemy {
                 bombCooldown *= 0.78;
             }
             case TANK -> {
-                width = 64;
-                height = 42;
+                width = 70;
+                height = 52;
                 maxHealth = 4 + level / 2;
                 reward = 30 * level;
                 bombChance = 0.62;
@@ -97,8 +105,8 @@ public class Enemy {
                 bombCooldown *= 1.15;
             }
             case BOSS -> {
-                width = 150;
-                height = 70;
+                width = 170;
+                height = 90;
                 maxHealth = 14 + level * 5;
                 reward = 150 * level;
                 bombChance = 0.96;
@@ -153,19 +161,51 @@ public class Enemy {
     }
 
     public void draw(GraphicsContext gc) {
-        switch (type) {
-            case SCOUT -> drawScout(gc);
-            case SHOOTER -> drawShooter(gc);
-            case TANK -> drawTank(gc);
-            case BOSS -> drawBoss(gc);
+        if (!drawKenneySprite(gc)) {
+            switch (type) {
+                case SCOUT -> drawScout(gc);
+                case SHOOTER -> drawShooter(gc);
+                case TANK -> drawTank(gc);
+                case BOSS -> drawBoss(gc);
+            }
         }
         drawHealthBar(gc);
+    }
+
+    private boolean drawKenneySprite(GraphicsContext gc) {
+        Image sheet = getKenneySheet();
+        if (sheet == null || sheet.isError() || sheet.getProgress() < 1.0) return false;
+
+        double[] source = switch (type) {
+            // Coordinates are taken from the official Kenney Space Shooter Redux preview sheet.
+            case SCOUT -> new double[]{70, 415, 55, 50};
+            case SHOOTER -> new double[]{70, 365, 55, 48};
+            case TANK -> new double[]{70, 470, 55, 50};
+            case BOSS -> new double[]{286, 198, 92, 58};
+        };
+
+        double glow = type == Type.BOSS ? 26 : 10;
+        gc.setFill(type == Type.SHOOTER ? Color.color(1.0, 0.1, 0.45, 0.18) : Color.color(0.0, 0.8, 1.0, 0.16));
+        gc.fillOval(x - glow / 2, y - glow / 3, width + glow, height + glow);
+        gc.drawImage(sheet, source[0], source[1], source[2], source[3], x, y, width, height);
+        return true;
+    }
+
+    private static Image getKenneySheet() {
+        if (!triedLoadingSheet) {
+            triedLoadingSheet = true;
+            try {
+                kenneySheet = new Image(KENNEY_SHEET_URL, false);
+            } catch (Exception ignored) {
+                kenneySheet = null;
+            }
+        }
+        return kenneySheet;
     }
 
     private void drawScout(GraphicsContext gc) {
         gc.setFill(Color.color(0.0, 0.8, 1.0, 0.18));
         gc.fillOval(x - 6, y + 4, width + 12, height + 8);
-
         gc.setFill(Color.rgb(34, 87, 122));
         gc.fillOval(x, y + 9, width, height - 7);
         gc.setFill(Color.LIGHTCYAN);
@@ -173,7 +213,6 @@ public class Enemy {
         gc.setStroke(Color.CYAN);
         gc.setLineWidth(2);
         gc.strokeOval(x + 2, y + 10, width - 4, height - 8);
-
         gc.setFill(Color.YELLOW);
         gc.fillOval(x + 8, y + 17, 7, 7);
         gc.fillOval(x + width / 2 - 3.5, y + 18, 7, 7);
@@ -183,14 +222,12 @@ public class Enemy {
     private void drawShooter(GraphicsContext gc) {
         gc.setFill(Color.color(1.0, 0.18, 0.18, 0.22));
         gc.fillOval(x - 8, y + 1, width + 16, height + 12);
-
         gc.setFill(Color.rgb(85, 26, 64));
         gc.fillOval(x, y + 10, width, height - 8);
         gc.setFill(Color.HOTPINK);
         gc.fillOval(x + 12, y, width - 24, 22);
         gc.setFill(Color.ORANGERED);
         gc.fillRoundRect(x + width / 2 - 5, y + height - 2, 10, 18, 5, 5);
-
         gc.setStroke(Color.HOTPINK);
         gc.setLineWidth(2);
         gc.strokeOval(x + 2, y + 10, width - 4, height - 8);
@@ -199,7 +236,6 @@ public class Enemy {
     private void drawTank(GraphicsContext gc) {
         gc.setFill(Color.color(0.55, 0.25, 1.0, 0.22));
         gc.fillRoundRect(x - 7, y + 2, width + 14, height + 10, 18, 18);
-
         gc.setFill(Color.rgb(56, 42, 98));
         gc.fillRoundRect(x, y + 8, width, height - 4, 14, 14);
         gc.setFill(Color.MEDIUMPURPLE);
@@ -208,7 +244,6 @@ public class Enemy {
         gc.fillOval(x + 11, y + 19, 8, 8);
         gc.fillOval(x + width / 2 - 4, y + 20, 8, 8);
         gc.fillOval(x + width - 19, y + 19, 8, 8);
-
         gc.setStroke(Color.MEDIUMPURPLE);
         gc.setLineWidth(2);
         gc.strokeRoundRect(x + 2, y + 9, width - 4, height - 6, 14, 14);
@@ -217,7 +252,6 @@ public class Enemy {
     private void drawBoss(GraphicsContext gc) {
         gc.setFill(Color.color(1.0, 0.0, 0.55, 0.20));
         gc.fillOval(x - 22, y - 10, width + 44, height + 30);
-
         gc.setFill(Color.rgb(36, 20, 64));
         gc.fillRoundRect(x + 18, y + 18, width - 36, height - 12, 24, 24);
         gc.setFill(Color.rgb(80, 20, 100));
@@ -225,11 +259,9 @@ public class Enemy {
         gc.fillOval(x + width - 58, y + 10, 58, 48);
         gc.setFill(Color.HOTPINK);
         gc.fillOval(x + width / 2 - 32, y, 64, 38);
-
         gc.setFill(Color.ORANGERED);
         gc.fillRoundRect(x + 25, y + height - 7, 14, 24, 8, 8);
         gc.fillRoundRect(x + width - 39, y + height - 7, 14, 24, 8, 8);
-
         gc.setStroke(Color.HOTPINK);
         gc.setLineWidth(3);
         gc.strokeRoundRect(x + 16, y + 17, width - 32, height - 10, 24, 24);
@@ -243,7 +275,6 @@ public class Enemy {
         double barX = x;
         double barY = y - (type == Type.BOSS ? 18 : 10);
         double percent = Math.max(0, health / (double) maxHealth);
-
         gc.setFill(Color.color(0, 0, 0, 0.58));
         gc.fillRoundRect(barX, barY, barWidth, barHeight, 4, 4);
         gc.setFill(percent > 0.45 ? Color.LIME : Color.ORANGERED);
@@ -251,7 +282,6 @@ public class Enemy {
         gc.setStroke(Color.WHITE);
         gc.setLineWidth(0.7);
         gc.strokeRoundRect(barX, barY, barWidth, barHeight, 4, 4);
-
         if (type == Type.BOSS || maxHealth > 2) {
             gc.setFont(Font.font("Arial", FontWeight.BOLD, type == Type.BOSS ? 12 : 9));
             gc.setFill(Color.WHITE);
