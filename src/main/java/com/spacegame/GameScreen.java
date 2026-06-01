@@ -74,9 +74,14 @@ public class GameScreen {
             enemies.add(new Enemy(MainApp.WIDTH / 2.0 - 75, 44, 48 + level * 12,
                     Math.max(0.9, 2.4 - level * 0.22), Enemy.Type.BOSS, level));
         }
+        if (level >= 1) {
+            enemies.add(new Enemy(MainApp.WIDTH / 2.0 + 190, 130, -(95 + level * 18),
+                    Math.max(0.9, 2.3 - level * 0.20), Enemy.Type.REAPER, level));
+        }
     }
 
     private Enemy.Type chooseType(int row, int col) {
+        if (level >= 2 && row == 0 && col == 3) return Enemy.Type.REAPER;
         if (level >= 3 && row == 0 && col % 3 == 1) return Enemy.Type.SHOOTER;
         if (level >= 2 && row >= 2 && col % 2 == 0) return Enemy.Type.TANK;
         if (row == 1 && col % 3 == 0) return Enemy.Type.SHOOTER;
@@ -146,7 +151,11 @@ public class GameScreen {
             if (!e.isAlive()) continue;
             e.update(delta);
             if (gameTimer > 2.0 && e.shouldDropBomb()) {
-                double speed = e.getType() == Enemy.Type.BOSS ? 170 + level * 42 : 125 + level * 38;
+                double speed = switch (e.getType()) {
+                    case BOSS -> 170 + level * 42;
+                    case REAPER -> 155 + level * 45;
+                    default -> 125 + level * 38;
+                };
                 bombs.add(new Bomb(e.getCenterX(), e.getBottomY(), speed));
             }
             if (e.getY() > MainApp.HEIGHT) e.kill();
@@ -220,6 +229,7 @@ public class GameScreen {
             case SCOUT -> 0.10;
             case SHOOTER -> 0.18;
             case TANK -> 0.28;
+            case REAPER -> 0.45;
             case BOSS -> 1.0;
         };
     }
@@ -309,7 +319,7 @@ public class GameScreen {
 
     private void drawMonsterPanel() {
         Enemy e = selectedEnemy != null && selectedEnemy.isAlive() ? selectedEnemy : enemies.stream().filter(Enemy::isAlive).max(Comparator.comparingInt(Enemy::getMaxHealth)).orElse(null);
-        double x = MainApp.WIDTH - 260, y = 42, w = 245, h = 74;
+        double x = MainApp.WIDTH - 270, y = 42, w = 255, h = 78;
         gc.setFill(Color.color(0.02, 0.02, 0.08, 0.70));
         gc.fillRoundRect(x, y, w, h, 14, 14);
         gc.setStroke(Color.color(0.0, 0.9, 1.0, 0.45));
@@ -320,7 +330,7 @@ public class GameScreen {
         if (e == null) { gc.setFill(Color.WHITE); gc.fillText("Aucun monstre restant", x + 12, y + 46); return; }
         gc.setFill(Color.WHITE);
         gc.fillText(e.getDisplayName(), x + 12, y + 41);
-        double hpX = x + 82, hpY = y + 32, hpW = 145, hpH = 12, pct = e.getHealth() / (double) e.getMaxHealth();
+        double hpX = x + 98, hpY = y + 32, hpW = 140, hpH = 12, pct = e.getHealth() / (double) e.getMaxHealth();
         gc.setFill(Color.color(1, 1, 1, 0.12));
         gc.fillRoundRect(hpX, hpY, hpW, hpH, 8, 8);
         gc.setFill(pct > 0.45 ? Color.LIME : Color.ORANGERED);
@@ -329,9 +339,9 @@ public class GameScreen {
         gc.strokeRoundRect(hpX, hpY, hpW, hpH, 8, 8);
         gc.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         gc.setFill(Color.WHITE);
-        gc.fillText("HP " + e.getHealth() + "/" + e.getMaxHealth(), hpX + 42, hpY + 10);
+        gc.fillText("HP " + e.getHealth() + "/" + e.getMaxHealth(), hpX + 38, hpY + 10);
         gc.setFill(Color.LIGHTGRAY);
-        gc.fillText("Scout | Shooter | Tank | Boss", x + 12, y + 63);
+        gc.fillText("Scout | Blaster | Tank | Reaper | Boss", x + 12, y + 65);
     }
 
     private String formatTime(double value) { return String.format("%.1f", value); }
