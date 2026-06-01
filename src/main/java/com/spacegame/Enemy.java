@@ -21,6 +21,7 @@ public class Enemy {
         SCOUT("Kenney Scout"),
         SHOOTER("Kenney Blaster"),
         TANK("Kenney Tank"),
+        REAPER("Kenney Reaper"),
         BOSS("Kenney Mothership");
 
         private final String displayName;
@@ -104,6 +105,17 @@ public class Enemy {
                 speedX *= 0.62;
                 bombCooldown *= 1.15;
             }
+            case REAPER -> {
+                width = 82;
+                height = 60;
+                maxHealth = 6 + level;
+                reward = 48 * level;
+                bombChance = 0.80;
+                waveAmplitude = 22 + rand.nextDouble() * 10;
+                waveSpeed = 2.3 + rand.nextDouble() * 1.0;
+                speedX *= 1.15;
+                bombCooldown *= 0.72;
+            }
             case BOSS -> {
                 width = 170;
                 height = 90;
@@ -133,6 +145,10 @@ public class Enemy {
             case TANK -> {
                 x += speedX * delta;
                 y += Math.sin(phase) * waveAmplitude * delta * 0.45;
+            }
+            case REAPER -> {
+                x += speedX * delta;
+                y += Math.sin(phase) * waveAmplitude * delta * 1.15;
             }
             case BOSS -> {
                 x += speedX * delta;
@@ -166,6 +182,7 @@ public class Enemy {
                 case SCOUT -> drawScout(gc);
                 case SHOOTER -> drawShooter(gc);
                 case TANK -> drawTank(gc);
+                case REAPER -> drawReaper(gc);
                 case BOSS -> drawBoss(gc);
             }
         }
@@ -181,11 +198,22 @@ public class Enemy {
             case SCOUT -> new double[]{70, 415, 55, 50};
             case SHOOTER -> new double[]{70, 365, 55, 48};
             case TANK -> new double[]{70, 470, 55, 50};
+            case REAPER -> new double[]{180, 515, 58, 52};
             case BOSS -> new double[]{286, 198, 92, 58};
         };
 
-        double glow = type == Type.BOSS ? 26 : 10;
-        gc.setFill(type == Type.SHOOTER ? Color.color(1.0, 0.1, 0.45, 0.18) : Color.color(0.0, 0.8, 1.0, 0.16));
+        double glow = switch (type) {
+            case BOSS -> 26;
+            case REAPER -> 18;
+            default -> 10;
+        };
+        Color glowColor = switch (type) {
+            case SHOOTER -> Color.color(1.0, 0.1, 0.45, 0.18);
+            case REAPER -> Color.color(0.8, 0.2, 1.0, 0.22);
+            case BOSS -> Color.color(1.0, 0.0, 0.55, 0.20);
+            default -> Color.color(0.0, 0.8, 1.0, 0.16);
+        };
+        gc.setFill(glowColor);
         gc.fillOval(x - glow / 2, y - glow / 3, width + glow, height + glow);
         gc.drawImage(sheet, source[0], source[1], source[2], source[3], x, y, width, height);
         return true;
@@ -249,6 +277,26 @@ public class Enemy {
         gc.strokeRoundRect(x + 2, y + 9, width - 4, height - 6, 14, 14);
     }
 
+    private void drawReaper(GraphicsContext gc) {
+        gc.setFill(Color.color(0.65, 0.0, 1.0, 0.23));
+        gc.fillOval(x - 10, y - 2, width + 20, height + 16);
+
+        gc.setFill(Color.rgb(42, 28, 76));
+        double[] bodyX = {x + width / 2, x + 4, x + width * 0.25, x + width * 0.75, x + width - 4};
+        double[] bodyY = {y, y + height * 0.55, y + height, y + height, y + height * 0.55};
+        gc.fillPolygon(bodyX, bodyY, 5);
+
+        gc.setFill(Color.GHOSTWHITE);
+        gc.fillOval(x + width / 2 - 15, y + 15, 30, 24);
+        gc.setFill(Color.HOTPINK);
+        gc.fillOval(x + width / 2 - 7, y + 24, 5, 5);
+        gc.fillOval(x + width / 2 + 2, y + 24, 5, 5);
+
+        gc.setStroke(Color.MEDIUMPURPLE);
+        gc.setLineWidth(3);
+        gc.strokePolygon(bodyX, bodyY, 5);
+    }
+
     private void drawBoss(GraphicsContext gc) {
         gc.setFill(Color.color(1.0, 0.0, 0.55, 0.20));
         gc.fillOval(x - 22, y - 10, width + 44, height + 30);
@@ -282,7 +330,7 @@ public class Enemy {
         gc.setStroke(Color.WHITE);
         gc.setLineWidth(0.7);
         gc.strokeRoundRect(barX, barY, barWidth, barHeight, 4, 4);
-        if (type == Type.BOSS || maxHealth > 2) {
+        if (type == Type.BOSS || type == Type.REAPER || maxHealth > 2) {
             gc.setFont(Font.font("Arial", FontWeight.BOLD, type == Type.BOSS ? 12 : 9));
             gc.setFill(Color.WHITE);
             gc.fillText(health + "/" + maxHealth, barX + barWidth / 2 - 14, barY - 2);
